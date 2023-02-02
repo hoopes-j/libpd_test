@@ -3,7 +3,7 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "johnson.h"
+#include "stereo.h"
 
 #include "Delay.h"
 
