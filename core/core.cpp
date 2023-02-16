@@ -1,5 +1,5 @@
   
-  #include "stereo.h"
+  #include "core.h"
   #include <iostream>
   
   bool Context::setup(

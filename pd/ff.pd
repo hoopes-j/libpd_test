@@ -1,0 +1,12 @@
+#N canvas 0 170 763 521 10;
+#X obj 149 28 loadbang;
+#X obj 270 121 random 128;
+#X obj 177 67 metro 100;
+#X obj 190 215 send cursor;
+#X msg 178 114 hello;
+#X obj 332 211 print;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 2 0 4 0;
+#X connect 4 0 3 0;
+#X connect 4 0 5 0;

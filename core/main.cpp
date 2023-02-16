@@ -3,9 +3,13 @@
 #include <cstdlib>
 #include <cstring>
 #include <cmath>
-#include "stereo.h"
+#include <functional>
+#include <thread>
+#include "core.h"
+#include <unistd.h>
+#include <stdio.h>
+#include <stdlib.h>
 
-#include "Delay.h"
 
 #define SAMPLE float
 #define AUDIO_FORMAT RTAUDIO_FLOAT32
@@ -13,14 +17,9 @@
 
 RtAudio adac;
 
-Delay delayInstance;
-
-
 
 
 Context ctx;
-
-
 
 // Audio Callback
 int callback( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
@@ -30,7 +29,8 @@ int callback( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
   if ( status ) std::cout << "Stream over/underflow detected." << std::endl;
   
   // unsigned int *bytes = (unsigned int *) data;
-  // ctx._numBytes = *bytes;
+
+  // printf(std::to_string((float *) inputBuffer[0])); 
 
   ctx.updateBuffers((SAMPLE *) inputBuffer, (SAMPLE *) outputBuffer);
 
@@ -73,11 +73,8 @@ int main()
   std::cout << inInfo.nativeFormats << std::endl;
   // std::cout << out.nativeFormats << std::endl;
 
-
-  if (!delayInstance.setup(sampleRate)) {
-    std::cerr << "Could not create delay instance" << std::endl;
-    return 1;
-  }
+  RtAudio::StreamOptions options;
+  options.flags = RTAUDIO_SCHEDULE_REALTIME;
 
   // int options = RTAUDIO_NONINTERLEAVED;
 
@@ -87,12 +84,12 @@ int main()
     sizeof(SAMPLE)
   );
 
-  setup(&ctx);
-
-
+  if (!setup(&ctx)) {
+    return 0;
+  };
 
   try {
-      adac.openStream( &oParams, &iParams, AUDIO_FORMAT, sampleRate, &bufferFrames, &callback, (void *)&bufferBytes);
+      adac.openStream( &oParams, &iParams, AUDIO_FORMAT, sampleRate, &bufferFrames, &callback, (void *)&bufferBytes, &options);
   }
   catch (RtAudioErrorType& e) {
       std::cerr << e << std::endl;
@@ -101,11 +98,13 @@ int main()
 
 
 
+
   try {
     adac.startStream();
-    char input;
-    std::cout << "\nRunning ... press <enter> to quit.\n";
-    std::cin.get(input);
+     // keep the program alive until it's killed with Ctrl+C
+    while(1) {
+      usleep(1000);
+    }
     // Stop the stream.
     adac.stopStream();
   }
@@ -113,6 +112,8 @@ int main()
     std::cerr << e << std::endl;
     goto cleanup;
   }
+
+
  cleanup:
   if ( adac.isStreamOpen() ) adac.closeStream();
   return 0;

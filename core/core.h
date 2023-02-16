@@ -1,8 +1,4 @@
 
-
-
-
-
 class Context
 {
 public:
@@ -30,8 +26,6 @@ public:
 
   void updateBuffers(float * inBufferPtr, float * outBufferPtr);
 
-private:
-
   float * _inputBuffer;
   float * _outputBuffer;
 };
@@ -43,3 +37,4 @@ private:
 
 bool setup(Context * ctx);
 void loop(Context * ctx);
+void pd_call();
