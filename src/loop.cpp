@@ -18,6 +18,9 @@ PdObject pdObject;
 
 float inbuf[64], outbuf[64];
 
+float* inBuffer;
+float* outBuffer;
+
 bool setup(Context * ctx) {
 
 
@@ -33,39 +36,64 @@ bool setup(Context * ctx) {
   lpd.computeAudio(true);
 
   // load the pd patch
-  pd::Patch patch = lpd.openPatch("test.pd", "../pd");
+  char patchName[] = "test.pd";
+  char patchDir[] = "../pd";
+  pd::Patch patch = lpd.openPatch(patchName, patchDir);
   std::cout << patch << std::endl;
-
 
   amplitude = 0.5;
 
-  printf("setup");
   return true;
 }
 
-void pd_call() {
-
-}
 
 
 void loop(Context * ctx)
 {
 
+  int pdBlocks = ctx->_numFrames / libpd_blocksize();
+  	// 	//audio input
+		// for(unsigned int n = 0; n < context->audioInChannels; ++n)
+		// {
+		// 	memcpy(
+		// 		gInBuf + n * gLibpdpdBlocksize,
+		// 		context->audioIn + tick * gLibpdpdBlocksize + n * context->audioFrames, 
+		// 		sizeof(context->audioIn[0]) * gLibpdpdBlocksize
+		// 	);
+		// }
 
-  int ticks = ctx->_frameSize / libpd_blocksize();
-  // printf("ticks: %d, pd_block: %d, frame: %d\n", ticks, libpd_blocksize(), ctx->_frameSize);
-  lpd.processFloat(ticks, ctx->_inputBuffer, ctx->_outputBuffer);
+  // for (int block = 0; block < pdBlocks; block++) {
 
-  for (int i = 0; i < ctx->_numBytes; i++) {
+  //   for (unsigned int channel = 0; n < ctx->_numChannels; i++) {
 
-    // float in = ctx->read(i);
-    // ctx->write(in, i);
-  }
+  //     //opearting on non-interrleaved buffers
+  //     memcpy(
+  //       inbuf + n * libpd_pdBlocksize(), 
+  //       ctx->_inputBuffer + tick * libpd_pdBlocksize() + channel * ctx->_numFrames,
+  //       sizeof(ctx->_inputBuffer[0] * gLibpdpdBlocksize)
+  //     )
+
+
+  //     //opearting on interleaved buffers
+  //     memcpy(
+  //       inbuf + n * pdpdBlocksize, 
+  //       ctx->_inputBuffer + tick * gLibpdpdBlocksize + n * context->audioFrames,
+  //       sizeof(ctx->_inputBuffer[0] * gLibpdpdBlocksize)
+  //     )
+  //   }
+
+  // }
+
+
+
+  // printf("ticks: %d, pd_block: %d, frame: %d\n", ticks, libpd_pdBlocksize(), ctx->_frameSize);
+
+
+  // Process a single interleaved block from pd
+  lpd.processFloat(pdBlocks, ctx->_inputBuffer, ctx->_outputBuffer);
 
   lpd.receiveMessages();
   lpd.sendFloat("FromCpp", 578);
-  // lpd.sendBang("jawn");
-
 
 }
 

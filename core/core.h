@@ -38,3 +38,5 @@ public:
 bool setup(Context * ctx);
 void loop(Context * ctx);
 void pd_call();
+
+void getInBuffer();

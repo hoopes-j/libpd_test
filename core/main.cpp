@@ -55,15 +55,15 @@ int main()
   // Set the same number of channels for both input and output.
   unsigned int bufferBytes = 512;
   unsigned int bufferFrames = 512;
-  RtAudio::StreamParameters iParams, oParams;
-  iParams.deviceId = adac.getDefaultInputDevice(); // first available device
-  iParams.nChannels = 2;
-  oParams.deviceId = adac.getDefaultOutputDevice(); // first available device
-  oParams.nChannels = 2;
+  RtAudio::StreamParameters inParams, outParams;
+  inParams.deviceId = adac.getDefaultInputDevice(); // first available device
+  inParams.nChannels = 2;
+  outParams.deviceId = adac.getDefaultOutputDevice(); // first available device
+  outParams.nChannels = 2;
 
 
-  RtAudio::DeviceInfo inInfo = adac.getDeviceInfo(iParams.deviceId);
-  RtAudio::DeviceInfo outInfo =  adac.getDeviceInfo(oParams.deviceId);
+  RtAudio::DeviceInfo inInfo = adac.getDeviceInfo(inParams.deviceId);
+  RtAudio::DeviceInfo outInfo =  adac.getDeviceInfo(outParams.deviceId);
 
   int sampleRate = inInfo.preferredSampleRate;
 
@@ -80,8 +80,8 @@ int main()
 
   ctx.setup(
     sampleRate,
-    bufferFrames,
-    sizeof(SAMPLE)
+    sizeof(SAMPLE),
+    bufferFrames
   );
 
   if (!setup(&ctx)) {
@@ -89,7 +89,7 @@ int main()
   };
 
   try {
-      adac.openStream( &oParams, &iParams, AUDIO_FORMAT, sampleRate, &bufferFrames, &callback, (void *)&bufferBytes, &options);
+      adac.openStream( &outParams, &inParams, AUDIO_FORMAT, sampleRate, &bufferFrames, &callback, (void *)&bufferBytes, &options);
   }
   catch (RtAudioErrorType& e) {
       std::cerr << e << std::endl;
@@ -101,11 +101,11 @@ int main()
 
   try {
     adac.startStream();
-     // keep the program alive until it's killed with Ctrl+C
+     // keep the program alive until it's killed 
     while(1) {
       usleep(1000);
     }
-    // Stop the stream.
+    // Stop the audio stream.
     adac.stopStream();
   }
   catch ( RtAudioErrorType& e ) {
