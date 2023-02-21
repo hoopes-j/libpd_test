@@ -9,17 +9,15 @@
 
 #include "PdBase.hpp"
 
-float amplitude = 0.0;
 
+// LibPd Instance
 pd::PdBase lpd;
 
-
-
-float inbuf[64], outbuf[64];
 
 float* inBuffer;
 float* outBuffer;
 
+// Variables to hold info for a basic midi sequencer
 std::vector<int> midiSequence; 
 int sequencePtr;
 int sequenceCounter;
@@ -110,9 +108,6 @@ bool setup(Context * ctx) {
   pd::Patch patch = lpd.openPatch(patchName, patchDir);
   std::cout << patch << std::endl;
 
-  amplitude = 0.5;
-
-
   // Init midi sequence to send to Pd
   midiSequence.resize(64);
   int midiMin = 64;
@@ -123,7 +118,6 @@ bool setup(Context * ctx) {
   sequenceCounter = 0;
   sequencePtr = 0;
   sequenceCounterMax = 5000;
-
 
   return true;
 }
@@ -147,17 +141,12 @@ void loop(Context * ctx)
   //     )
   // }
 
-
-
-
   // Process multiple interleaved blocks from pd
   lpd.processFloat(pdBlocks, ctx->_inputBuffer, ctx->_outputBuffer);
 
-  lpd.receiveMessages();
-
+  // Increment Midi Sequencer and send midi note if interval is completed
   sequenceCounter += ctx->_numFrames;
   if (sequenceCounter >= sequenceCounterMax) {
-
     lpd.sendNoteOn(
       0,                           // channel
       midiSequence[sequencePtr],   // pitch
@@ -166,8 +155,12 @@ void loop(Context * ctx)
     sequenceCounter = 0;  
     sequencePtr=(sequencePtr+1)%midiSequence.size();
   }
+
+  lpd.receiveMessages();
   lpd.receiveMidi();
+  // Example of sending messages from c++
   lpd.sendFloat("from_cpp", 64);
+  lpd.sendBang("bang_in");
 
 }
 
