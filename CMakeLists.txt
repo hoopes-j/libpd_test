@@ -22,7 +22,7 @@ if (UNIX AND NOT APPLE)
   set(SOLIB_EXT so)
 endif()
 
-set(LIBPD_DIR "/Users/jason/code/playground/c++/libpd_test/libs/libpd")
+set(LIBPD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/libs/libpd")
 set(LIBPD "${LIBPD_DIR}/libs/libpd.${SOLIB_EXT}")
 
 

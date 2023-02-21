@@ -13,8 +13,6 @@ float amplitude = 0.0;
 
 pd::PdBase lpd;
 
-PdObject pdObject;
-
 
 
 float inbuf[64], outbuf[64];
@@ -44,7 +42,7 @@ class Reciever : public pd::PdReceiver {
   }
 
   void receiveSymbol(const std::string &dest, const std::string &symbol) {
-    printf("Recieved symbol from %s:\n - %s\n", symbol.c_str());
+    printf("Recieved symbol from %s:\n - %s\n", dest.c_str(), symbol.c_str());
   }
 
   void receiveList(const std::string &dest, const pd::List &list) {
