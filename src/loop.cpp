@@ -8,7 +8,6 @@
 #include <stdlib.h>
 
 #include "PdBase.hpp"
-#include "PdObject.h"
 
 float amplitude = 0.0;
 
