@@ -136,6 +136,7 @@ void loop(Context * ctx)
   int pdBlocks = ctx->_numFrames / libpd_blocksize();
 
   // Using non-interleaved buffers
+  // https://github.com/BelaPlatform/Bela/blob/master/core/default_libpd_render.cpp#L1352 
   // for (int block = 0; block < pdBlocks; block++) {
   //   for (unsigned int channel = 0; n < ctx->_numChannels; i++) {
   //     //audio input
