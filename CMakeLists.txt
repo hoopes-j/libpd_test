@@ -28,30 +28,38 @@ set(LIBPD "${LIBPD_DIR}/libs/libpd.${SOLIB_EXT}")
 
 file (GLOB SOURCES "src/*.cpp" "core/*.cpp")
 add_executable( ${PROJECT_NAME} ${SOURCES})
+
+
+
+set (DIRS 
+  ${LIBPD_DIR}/libpd_wrapper 
+  ${LIBPD_DIR}/libpd_wrapper/util 
+  ${LIBPD_DIR}/pure-data/src 
+  ${LIBPD_DIR}/cpp
+  core
+)
+
 target_include_directories(${PROJECT_NAME} PRIVATE src)
-target_include_directories(${PROJECT_NAME} PRIVATE core)
-
-file (GLOB INCLUDE "${LIBPD_DIR}/libpd_wrapper" "${LIBPD_DIR}/libpd_wrapper/util" 
-"${LIBPD_DIR}/pure-data/src" "${LIBPD_DIR}/cpp")
+target_include_directories(${PROJECT_NAME} PUBLIC ${DIRS})
 
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBPD_DIR}/libpd_wrapper)
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBPD_DIR}/libpd_wrapper/util)
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBPD_DIR}/pure-data/src)
-target_include_directories(${PROJECT_NAME} PUBLIC ${LIBPD_DIR}/cpp)
-
-target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBPD})
-target_link_libraries(${PROJECT_NAME} PUBLIC pthread)
-
-# Link CoreAudio
+# Find CoreAudio
 find_library(CoreAudioFwk CoreAudio REQUIRED)
 message(STATUS "found CoreAudioFwk=${CoreAudioFwk}")
-target_link_libraries(${PROJECT_NAME} PUBLIC "${CoreAudioFwk}")
-
-# link CoreFoundation Framework
+# Find CoreFoundation Framework
 find_library(CoreFoundationFwk CoreFoundation REQUIRED)
 message(STATUS "found CoreFoundationFwk=${CoreFoundationFwk}")
-target_link_libraries(${PROJECT_NAME} PUBLIC "${CoreFoundationFwk}")
+
+
+
+set(LIBS ${CoreAudioFwk} ${CoreFoundationFwk} ${LIBPD} pthread)
+
+target_link_libraries(${PROJECT_NAME} PUBLIC ${LIBS})
+
+
+
+
+
 
 
 

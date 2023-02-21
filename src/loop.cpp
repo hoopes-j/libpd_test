@@ -16,10 +16,31 @@ pd::PdBase lpd;
 
 PdObject pdObject;
 
+
+
 float inbuf[64], outbuf[64];
 
 float* inBuffer;
 float* outBuffer;
+
+std::vector<int> midiSequence; 
+int sequencePtr;
+int sequenceCounter;
+int sequenceCounterMax;
+
+
+class MidiReciever : public pd::PdMidiReceiver  {
+
+  // pd midi receiver callbacks
+	void receiveNoteOn(const int channel, const int pitch, const int velocity) {
+    printf("CPP Host Recieved Midi Message: \n");
+    printf(" - Note:     %d\n", pitch);
+    printf(" - Velocity: %d\n", velocity);
+    printf(" - Channel:  %d\n", channel);
+  }
+};
+
+MidiReciever midiReciever;
 
 bool setup(Context * ctx) {
 
@@ -30,7 +51,9 @@ bool setup(Context * ctx) {
   }
 
   lpd.setReceiver(&pdObject);
+  lpd.setMidiReceiver(&midiReciever);
   lpd.subscribe("cpp_instance");
+  lpd.subscribe("bang_out");
 
   // turn on audio
   lpd.computeAudio(true);
@@ -43,6 +66,20 @@ bool setup(Context * ctx) {
 
   amplitude = 0.5;
 
+
+  // Init midi sequence to send to Pd
+  midiSequence.resize(64);
+  int midiMin = 64;
+  int midiRange = 24;
+  for (int i = 0; i < midiSequence.size(); i++) {
+    midiSequence[i] = midiMin + rand() % midiRange;
+  }
+
+  sequenceCounter = 0;
+  sequencePtr = 0;
+  sequenceCounterMax = 5000;
+
+
   return true;
 }
 
@@ -52,48 +89,42 @@ void loop(Context * ctx)
 {
 
   int pdBlocks = ctx->_numFrames / libpd_blocksize();
-  	// 	//audio input
-		// for(unsigned int n = 0; n < context->audioInChannels; ++n)
-		// {
-		// 	memcpy(
-		// 		gInBuf + n * gLibpdpdBlocksize,
-		// 		context->audioIn + tick * gLibpdpdBlocksize + n * context->audioFrames, 
-		// 		sizeof(context->audioIn[0]) * gLibpdpdBlocksize
-		// 	);
-		// }
 
+  // Using non-interleaved bufferrs
   // for (int block = 0; block < pdBlocks; block++) {
-
   //   for (unsigned int channel = 0; n < ctx->_numChannels; i++) {
-
-  //     //opearting on non-interrleaved buffers
+  //     //audio input
   //     memcpy(
-  //       inbuf + n * libpd_pdBlocksize(), 
+  //       inBuffer + n * libpd_pdBlocksize(), 
   //       ctx->_inputBuffer + tick * libpd_pdBlocksize() + channel * ctx->_numFrames,
-  //       sizeof(ctx->_inputBuffer[0] * gLibpdpdBlocksize)
+  //       sizeof(ctx->_inputBuffer[0] * libpd_pdBlocksize())
   //     )
-
-
-  //     //opearting on interleaved buffers
-  //     memcpy(
-  //       inbuf + n * pdpdBlocksize, 
-  //       ctx->_inputBuffer + tick * gLibpdpdBlocksize + n * context->audioFrames,
-  //       sizeof(ctx->_inputBuffer[0] * gLibpdpdBlocksize)
-  //     )
-  //   }
-
   // }
 
 
 
-  // printf("ticks: %d, pd_block: %d, frame: %d\n", ticks, libpd_pdBlocksize(), ctx->_frameSize);
 
-
-  // Process a single interleaved block from pd
+  // Process multiple interleaved blocks from pd
   lpd.processFloat(pdBlocks, ctx->_inputBuffer, ctx->_outputBuffer);
 
+
+
   lpd.receiveMessages();
-  lpd.sendFloat("FromCpp", 578);
+
+  sequenceCounter += ctx->_numFrames;
+  if (sequenceCounter >= sequenceCounterMax) {
+
+    lpd.sendNoteOn(
+      0,    // channel
+      midiSequence[sequencePtr],   // pitch
+      64    // velocity
+    );    
+    sequenceCounter = 0;  
+    sequencePtr=(sequencePtr+1)%midiSequence.size();
+  }
+  lpd.receiveMidi();
+  // lpd.sendFloat("FromCpp", 578);
+  // lpd.sendBang("midi_bang");
 
 }
 

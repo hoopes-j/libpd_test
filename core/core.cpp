@@ -31,16 +31,17 @@
 
   float Context::read(int frameIdx) 
   {
-    return 0.0+_inputBuffer[frameIdx];
+    return _inputBuffer[frameIdx];
   }
 
   float Context::read(int frameIdx, int channel) 
   {
-    return 0.0+_inputBuffer[frameIdx];
+    return _inputBuffer[frameIdx];
   }
 
   void Context::updateBuffers(float * inBufferPtr, float * outBufferPtr) 
   {
+    // memcpy(_inputBuffer, inBufferPtr, _numFrames);
     _inputBuffer = inBufferPtr;
     _outputBuffer = outBufferPtr;
   }

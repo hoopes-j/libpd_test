@@ -28,10 +28,6 @@ int callback( void *outputBuffer, void *inputBuffer, unsigned int nBufferFrames,
 
   if ( status ) std::cout << "Stream over/underflow detected." << std::endl;
   
-  // unsigned int *bytes = (unsigned int *) data;
-
-  // printf(std::to_string((float *) inputBuffer[0])); 
-
   ctx.updateBuffers((SAMPLE *) inputBuffer, (SAMPLE *) outputBuffer);
 
   loop(&ctx);
@@ -53,8 +49,8 @@ int main()
   // Setup Audio Devices
 
   // Set the same number of channels for both input and output.
-  unsigned int bufferBytes = 512;
-  unsigned int bufferFrames = 512;
+  unsigned int bufferFrames = 64;
+  unsigned int bufferBytes = bufferFrames;
   RtAudio::StreamParameters inParams, outParams;
   inParams.deviceId = adac.getDefaultInputDevice(); // first available device
   inParams.nChannels = 2;
@@ -70,8 +66,7 @@ int main()
   std::cout << inInfo.name << std::endl;
   std::cout << "Sample Rate: " << std::to_string(sampleRate) << std::endl;
   std::cout << outInfo.name << std::endl;
-  std::cout << inInfo.nativeFormats << std::endl;
-  // std::cout << out.nativeFormats << std::endl;
+
 
   RtAudio::StreamOptions options;
   options.flags = RTAUDIO_SCHEDULE_REALTIME;
