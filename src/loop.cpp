@@ -29,7 +29,51 @@ int sequenceCounter;
 int sequenceCounterMax;
 
 
+
+class Reciever : public pd::PdReceiver {
+  // Hooks for all non-midi events sent by Pure Data Patch
+  void print(const std::string &message) {
+    printf("Recieved print msg:\n - %s\n", message.c_str());
+  }
+
+  void receiveBang(const std::string &dest) {
+    printf("Recieved Bang from %s\n", dest.c_str());
+  }
+
+  void receiveFloat(const std::string &dest, float num) {
+    printf("Recieved Float from %s:\n - %f\n", dest.c_str(), num);
+  }
+
+  void receiveSymbol(const std::string &dest, const std::string &symbol) {
+    printf("Recieved symbol from %s:\n - %s\n", symbol.c_str());
+  }
+
+  void receiveList(const std::string &dest, const pd::List &list) {
+    // step through the list
+    for(int i = 0; i < list.len(); ++i) {
+      if(list.isFloat(i)) {
+        std::cout << list.getFloat(i);
+      }
+      else if(list.isSymbol(i)) {
+        std::cout << list.getSymbol(i);
+      }
+      if(i < list.len()-1) {
+        std::cout << " ";
+      }
+    }
+  }
+  void receiveMessage(const std::string &dest, const std::string &msg, const pd::List &list) {
+    printf(
+      "Recieved Message from %s:\n - %s\n - %s\n - %s\n", 
+      dest.c_str(), msg.c_str(), list.toString().c_str(), list.types().c_str()
+    );
+  }
+};
+
+Reciever reciever;
+
 class MidiReciever : public pd::PdMidiReceiver  {
+  // Object containing hooks for midi events that are sent from Pd
 
   // pd midi receiver callbacks
 	void receiveNoteOn(const int channel, const int pitch, const int velocity) {
@@ -42,6 +86,9 @@ class MidiReciever : public pd::PdMidiReceiver  {
 
 MidiReciever midiReciever;
 
+
+
+
 bool setup(Context * ctx) {
 
 
@@ -50,10 +97,12 @@ bool setup(Context * ctx) {
     exit(1);
   }
 
-  lpd.setReceiver(&pdObject);
+  //Bind recievers to pd instance
+  lpd.setReceiver(&reciever);
   lpd.setMidiReceiver(&midiReciever);
+  // subscribe recievers to everything sent from PD with [send cpp_instance]
   lpd.subscribe("cpp_instance");
-  lpd.subscribe("bang_out");
+
 
   // turn on audio
   lpd.computeAudio(true);
@@ -74,7 +123,6 @@ bool setup(Context * ctx) {
   for (int i = 0; i < midiSequence.size(); i++) {
     midiSequence[i] = midiMin + rand() % midiRange;
   }
-
   sequenceCounter = 0;
   sequencePtr = 0;
   sequenceCounterMax = 5000;
@@ -90,7 +138,7 @@ void loop(Context * ctx)
 
   int pdBlocks = ctx->_numFrames / libpd_blocksize();
 
-  // Using non-interleaved bufferrs
+  // Using non-interleaved buffers
   // for (int block = 0; block < pdBlocks; block++) {
   //   for (unsigned int channel = 0; n < ctx->_numChannels; i++) {
   //     //audio input
@@ -107,24 +155,21 @@ void loop(Context * ctx)
   // Process multiple interleaved blocks from pd
   lpd.processFloat(pdBlocks, ctx->_inputBuffer, ctx->_outputBuffer);
 
-
-
   lpd.receiveMessages();
 
   sequenceCounter += ctx->_numFrames;
   if (sequenceCounter >= sequenceCounterMax) {
 
     lpd.sendNoteOn(
-      0,    // channel
+      0,                           // channel
       midiSequence[sequencePtr],   // pitch
-      64    // velocity
+      64                           // velocity
     );    
     sequenceCounter = 0;  
     sequencePtr=(sequencePtr+1)%midiSequence.size();
   }
   lpd.receiveMidi();
-  // lpd.sendFloat("FromCpp", 578);
-  // lpd.sendBang("midi_bang");
+  lpd.sendFloat("from_cpp", 64);
 
 }
 
